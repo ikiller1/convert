@@ -7,9 +7,6 @@ CDialog::CDialog(QWidget *parent)
 
     setupUi(this);
     checkBox->setVisible(false);
-    //process.start("ffmpeg");//cover the slow unpack processing
-    //process.waitForFinished(1000);
-    tomp4=-1;
     timeEdit_2->setEnabled(false);
     timeEdit_3->setEnabled(false);
     QPushButton *convertButton =
@@ -91,16 +88,20 @@ void CDialog::convert()
 {
 
     buttonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
-    //outputTextEdit->clear();
     textBrowser->clear();
     QStringList args;
     //"ffmpeg  -y -t 30 -i e:\YUAN.mkv  -vf subtitles='e\:\\YUAN.mkv'
     //-vcodec libx264 -s 640x480 -b:v 600k e:\fv.mp4"
     args.clear();
-    if(overwrite1->checkState()==Qt::Checked)
+    if(overwrite1->checkState() == Qt::Checked)
+    {
         args<<"-y";
+    }
+
     if(test->checkState()==Qt::Checked)
+    {
         args<<"-t"<<"20";
+    }
     args<<"-i";
     args<<sourceFile;
 
@@ -110,21 +111,17 @@ void CDialog::convert()
         QString t=sourceFile;
         t.replace("\\","\\\\");
         t.insert(1,QString("\\"));
-
         args<<(QString("subtitles='")+t+QString("'"));
     }
-    //args<<sourceFile;
     args<<"-vcodec"<<"libx264"<<"-s";
-    args<<comboBox->currentText();
-    // args<<"640x480";
+    args<<comboBox->currentText();// args<<"640x480";
     args<<"-b:v";
-    //args<<"500k";
-    args<<QString("%1").arg(bitrate->value())+QString("k");
+    args<<QString("%1").arg(bitrate->value())+QString("k");//args<<"500k";
     args<<mp4File;
-    //args<<sourceFile;
+
     process.start("./ffmpeg.exe",args);
-    //textBrowser->setPlainText(sourceFile+mp4File);
-    //QString("%1").arg(bitrate->value())+QString("k")
+    textBrowser->setPlainText(sourceFile+mp4File);
+
     tosplit->setEnabled(false);
 }
 
@@ -162,23 +159,24 @@ void CDialog::stopconvert()
     //process.start("ffmpeg");
 }
 
-void CDialog::processFinished(int exitCode,
-                              QProcess::ExitStatus exitStatus)
+void CDialog::processFinished(int exitCode, QProcess::ExitStatus exitStatus)
 {
     if (exitStatus == QProcess::CrashExit) {
         //textBrowser->append(tr("Conversion program crashed"));
         textBrowser->appendPlainText(QString("Conversion program crashed"));
-    } else if (exitCode != 0) {
+    }
+    else if (exitCode != 0) {
         textBrowser->appendPlainText(QString(tr("Conversion failed")));
-    } else {
+    }
+    else {
         textBrowser->appendPlainText(QString(tr("File %1 created").arg(mp4File)));
-        tomp4=1;
         tosplit->setEnabled(true);
     }
     buttonBox->button(QDialogButtonBox::Apply)->setEnabled(true);
     tosplit->setEnabled(true);
     //stopbutton->setEnabled(false);
 }
+
 void CDialog::runsplit()
 {
     static long i=-1;
@@ -196,8 +194,11 @@ void CDialog::runsplit()
             QString time;
             args.clear();
             if(timeEdit_0->time()<timeEdit_1->time())
-            {if(overwrite2->checkState()==Qt::Checked)
+            {
+                if(overwrite2->checkState()==Qt::Checked)
+                {
                     args<<"-y";
+                }
                 args<<"-ss"<<timeEdit_0->time().toString("hh:mm:ss");
                 args<<"-t"<<time.setNum(timeEdit_0->time().secsTo(timeEdit_1->time()),10);
                 args<<"-i"<<mp4File;
@@ -214,7 +215,7 @@ void CDialog::runsplit()
                 args<<output_mp4_name;
                 QString output_mp3_name=output_mp4_name;
                 int dotIndex=output_mp3_name.lastIndexOf(".");
-                output_mp3_name =output_mp3_name.replace(dotIndex,output_mp3_name.size()-dotIndex,".mp3");
+                output_mp3_name = output_mp3_name.replace(dotIndex,output_mp3_name.size()-dotIndex,".mp3");
 
                 args<<"-vn"<<"-ar"<<"44100"<<"-f"<<"mp3"<<output_mp3_name;
                 textBrowser->appendPlainText(args.join(" "));
@@ -234,20 +235,19 @@ void CDialog::runsplit()
 }
 void CDialog::help()
 {
-    QMessageBox box;
-    box.setWindowTitle("Help");
-    box.setDefaultButton(QMessageBox::Ok);
-    box.setIcon(QMessageBox::Information);
-    box.setText(QString("使用方法：\n1.browse选择mkv格式的文件，若存在软字幕，则勾选\"soft sub to...\"选项，\n点击\"->mp4\"按钮。\n"
+    m_Box.setWindowTitle("Help");
+    m_Box.setDefaultButton(QMessageBox::Ok);
+    m_Box.setIcon(QMessageBox::Information);
+    m_Box.setText(QString("使用方法：\n1.browse选择mkv格式的文件，若存在软字幕，则勾选\"soft sub to...\"选项，\n点击\"->mp4\"按钮。\n"
                          )+QString("2.输入合适时间段，点击\"to split\"，即可生成相应的mp4,mp3文件。\n"
                                    )+QString("\n(文件默认生成目录为源文件目录，名称为源文件名后加上序号)。\n若已经是MP4文件，即可在第一步中直接选择MP4文件，然后直接进入第二步。\n勾选overwrite即可覆盖已存在文件。\n"
                                              )+QString("Test勾选生成20秒的视频用于测试效果。\n遇到其他问题请查看窗口中部的信息输出栏。\n\n"
                                                        )+QString("\nThanks for your using !       2016.5.3")
                  );
-    box.setModal(false);
-    box.move(this->pos()+QPoint(this->width()/2,this->height()/3));
+    m_Box.setModal(false);
+    m_Box.move(this->pos()+QPoint(this->width()/2,this->height()/3));
 
-    box.show();
+    m_Box.show();
 }
 
 void CDialog::playstart()

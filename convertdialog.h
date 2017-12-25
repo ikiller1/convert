@@ -4,7 +4,7 @@
 
 #include <QDialog>
 #include <QProcess>
-
+#include <QMessageBox>
 #include "ui_convert.h"
 
 class CDialog : public QDialog, private Ui::ConvertDialog
@@ -32,7 +32,7 @@ private:
     QProcess player;
     QString mp4File;
     QString sourceFile;
-    bool tomp4;
+    QMessageBox m_Box;
 };
 
 
